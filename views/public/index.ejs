@@ -45,16 +45,29 @@
         <div class="content">
             <div id = "pass-to-me">
                 <% if (typeof top_songs == 'object') { %>
+                    <!-- Title -->
+                    <h2>Your Top <%= top_songs.length %> Songs of <%= time_length %>.</h2>
                     <!--Display Selection-->
+                    <div class = "new-tracks-form">
                     <form action="/new-tracks-form">
-                        <label for="track_amount">Change amount (max 50)</label>
-                        <input type="text" id="track_amount" name="track_amount" maxlength="2" size="2"><br>
+                        <!--Amount-->
+                        <label for="track_amount">Change Amount (Max 50)</label>
+                        <input type="text" id="track_amount" name="track_amount" maxlength="2" size="1" value="25"><br>
+                        <!-- Time length -->
+                        <label for="time_length">Time Length</label>
+                        <select id="time_length" name="time_length">
+                            <option value="short_term">Last 4 weeks</option>
+                            <option value="medium_term">Last 6 Months</option>
+                            <option value="long_term">All Time</option>
+                        </select>
+                        <br>
                         <input type="submit" value="Update">
                     </form>
+                  </div>
 
-                    <br/>
+                    <br>
                     <!--Display songs -->
-                    Top <%= top_songs.length %> Songs:
+                    <p> Hover over for a song for details. </p>
                     <% for (var i = 0; i < top_songs.length;  i++ ) { %>
                         <% if (i % 5 == 0) { %> <br/> <% } %>
                         <!-- TEXT VERSION <%= top_songs[i] + ' - ' + top_artists[i] +  ' (' + top_albums[i] + ')' %> -->

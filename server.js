@@ -32,6 +32,7 @@ var redirect_home = 'http://localhost:8888';
 //TODO: better system for these global vars
 var loggedin = false;
 var top_tracks_limit = 25;
+var top_tracks_time = 'short_term';
 var access_token;
 var refresh_token;
 var top_artists;
@@ -84,6 +85,7 @@ app.get('/personalization', function(req, res) {
 
 /**
  * Page for seeing users top songs.
+ * Contains all data sent to page.
  */
 app.get('/top-songs', function(req, res) {
     res.render('public/index', {
@@ -92,6 +94,7 @@ app.get('/top-songs', function(req, res) {
         top_artists: top_artists,
         top_songs: top_songs,
         top_albums: top_albums,
+        time_length: timeLimitDisplay(top_tracks_time),
         top_albums_images: top_albums_images
     });
 });
@@ -113,7 +116,8 @@ app.get('/render-login', function(req, res){
  * NOTE: this link needs to be whitelisted.
  */
 app.get('/user-info', function(req, res) {
-    var url = 'https://api.spotify.com/v1/me/top/tracks' + '?limit=' + top_tracks_limit;
+    var url = 'https://api.spotify.com/v1/me/top/tracks'
+            + '?limit=' + top_tracks_limit + '&time_range=' + top_tracks_time;
 	  var redirect_auth = redirect_user;
     apiReqData(url, redirect_auth, req, res);
 });
@@ -133,7 +137,9 @@ app.get('/callback', function(req, res) {
  * Update the current tracks being displayed in the top songs page.
  */
 app.get('/new-tracks-form', function(req, res) {
-    console.log("User requested " + req.query.track_amount + " top tracks");
+    console.log("User requested \"" + req.query.track_amount + "\" top tracks, on \"" + req.query.time_length +"\" length.");
+
+    top_tracks_time = req.query.time_length; //TODO: verify?
     if (req.query.track_amount > 0 && req.query.track_amount <= MAX_TRACKS){
         top_tracks_limit = req.query.track_amount;
         res.redirect('/personalization');
@@ -321,6 +327,19 @@ function parseApiTracks(obj, res){
 }
 
 
+/**
+ * Method for returning string to display relative to time length.
+ * @param  {time_length} - Value of time length in form.
+ */
+var timeLimitDisplay = function(time_length){
+  switch (time_length) {
+    case "short_term": return "the Last Four Weeks";
+    case "medium_term": return "the Last Six Months";
+    case "long_term": return "All Time";
+  }
+    //TODO: error case
+  return "error";
+}
 
 /**
  * (Taken from web tutorial)
