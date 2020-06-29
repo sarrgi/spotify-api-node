@@ -22,7 +22,8 @@ app.set('view engine', 'ejs');
 
 
 //global vars
-const port = 8888;
+const PORT = 8888;
+const MAX_TRACKS = 50;
 var stateKey = 'spotify_auth_state';
 var redirect_uri = 'http://localhost:8888/callback';
 var redirect_user = 'http://localhost:8888/user-info';
@@ -41,7 +42,7 @@ var display_name;
 var login_image;
 
 
-//connect to home page (link home to index.ejs)
+//connect to home page (index.ejs)
 app.get('/', function(request, response) {
     response.render('public/index', {
         display_name: display_name,
@@ -50,11 +51,11 @@ app.get('/', function(request, response) {
 });
 
 //make the server actually listen to site
-app.listen(port, () => console.log(`App Listening at http://localhost:${port}`));
+app.listen(PORT, () => console.log('App Listening at http://localhost: ' + PORT));
 
 
 /**
- * Login "page".
+ * Login redirect.
  */
 app.get('/login', function(req, res) {
 	  //set cookie
@@ -68,7 +69,7 @@ app.get('/login', function(req, res) {
 
 
 /**
- * User personalization "page".
+ * Page for user personalization.
  */
 app.get('/personalization', function(req, res) {
 	  //set cookie
@@ -82,9 +83,9 @@ app.get('/personalization', function(req, res) {
 
 
 /**
- * TODO: BETTER
+ * Page for seeing users top songs.
  */
-app.get('/render-songs', function(req, res) {
+app.get('/top-songs', function(req, res) {
     res.render('public/index', {
         display_name: display_name,
         login_image: login_image,
@@ -95,6 +96,10 @@ app.get('/render-songs', function(req, res) {
     });
 });
 
+
+/**
+ * Render home page with user logged in.
+ */
 app.get('/render-login', function(req, res){
     res.render('public/index', {
         display_name: display_name,
@@ -105,10 +110,11 @@ app.get('/render-login', function(req, res){
 
 /**
  * Request users top tracks.
+ * NOTE: this link needs to be whitelisted.
  */
 app.get('/user-info', function(req, res) {
     var url = 'https://api.spotify.com/v1/me/top/tracks' + '?limit=' + top_tracks_limit;
-	var redirect_auth = redirect_user;
+	  var redirect_auth = redirect_user;
     apiReqData(url, redirect_auth, req, res);
 });
 
@@ -123,14 +129,17 @@ app.get('/callback', function(req, res) {
 });
 
 
+/**
+ * Update the current tracks being displayed in the top songs page.
+ */
 app.get('/new-tracks-form', function(req, res) {
     console.log("User requested " + req.query.track_amount + " top tracks");
-    if (req.query.track_amount > 0 && req.query.track_amount < 50){
+    if (req.query.track_amount > 0 && req.query.track_amount <= MAX_TRACKS){
         top_tracks_limit = req.query.track_amount;
         res.redirect('/personalization');
     } else {
         //invalid track amount redirect
-        res.redirect('/render-songs#' +
+        res.redirect('/top-songs#' +
             querystring.stringify({
                 error: 'invalid_track_amount'
             })
@@ -142,6 +151,7 @@ app.get('/new-tracks-form', function(req, res) {
 /**
  * Get new access token via refresh token.
  * Taken from spotify web tutorial.
+ * NOTE: Not currently in use.
  */
 app.get('/refresh_token', function(req, res) {
     console.log('refreshing token');
@@ -190,10 +200,13 @@ function apiInitCall(scope, redirect_link, res){
 
 
 /**
- *TODO: comment and tidy up.
+ * Method for querying the spotify API.
+ * @param {url} - get request to be made to the api.
+ * @param {redirect_auth} - url to redirect to upon authorization.
+ * @param {req} - Http request.
+ * @param {res}- Http response.
  */
 function apiReqData(url, redirect_auth, req, res){
-
     var code = req.query.code || null;
     var state = req.query.state || null;
     var storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -254,26 +267,30 @@ function apiReqData(url, redirect_auth, req, res){
 }
 
 
+/**
+ * Method which redirects from render-login back to the home page.
+ */
 function parseApiLogin(obj, res){
     display_name = obj.display_name;
     login_image = obj.images[0].url;
-    res.redirect('render-login');
+    res.redirect('/');
 }
 
 
 /**
- * @param {body} - JSON object
+ * Method for parsing the tracks obtained via the top tracks get request.
+ * @param {obj} - JSON object.
+ * @param {obj} - Http response.
  */
 function parseApiTracks(obj, res){
-  /*
-    Useful info for top tracks
-      Artists    = obj.items[x].artists[y]
-      Song name  = obj.items[x].name
-      Album name = obj.items[x].album.name
-      Album image = obj.items[x].album.images[0].url
+    /*
+      Useful info for top tracks
+        Artists    = obj.items[x].artists[y]
+        Song name  = obj.items[x].name
+        Album name = obj.items[x].album.name
+        Album image = obj.items[x].album.images[0].url
 
-  */
-
+    */
     if (obj.hasOwnProperty('items')){ //filter out login data
         top_artists = new Array(obj.items.length);
         top_songs = new Array(obj.items.length);
@@ -299,7 +316,7 @@ function parseApiTracks(obj, res){
             top_albums_images[i] = obj.items[i].album.images[0].url;
         }
 
-        res.redirect('/render-songs');
+        res.redirect('/top-songs');
     }
 }
 
@@ -307,7 +324,7 @@ function parseApiTracks(obj, res){
 
 /**
  * (Taken from web tutorial)
- * Generates a random string containing numbers and letters
+ * Generates a random string containing numbers and letters, used for cookie.
  * @param  {number} length The length of the string
  * @return {string} The generated string
  */
