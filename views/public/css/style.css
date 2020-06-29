@@ -1,0 +1,127 @@
+body {
+ 	  background-color: lightblue;
+}
+
+h1 {
+  text-align: left;
+}
+
+p {
+  vertical-align: center;
+}
+
+/*Header */
+.header{
+    border: 1px solid #000;
+    width: 800px;
+    height:64px;
+    text-align: center;
+    margin: 0 auto;
+  	background-color: yellow;
+}
+
+#header-title{
+    vertical-align: middle;
+	  width: 600px;
+	  height:64px;
+	  float: left;
+	  background-color: lightgray;
+}
+
+#header-login{
+	  width: 200px;
+	  height: 64px;
+	  float: left;
+    text-align: center;
+	  background-color: darkgray;
+}
+
+#login-name {
+    width: 128px;
+    text-align: center;
+    font-size: 18px;
+    font-family: serif;
+    float: left;
+    height: 64px;
+}
+
+#login-name-text{
+    text-align:center;
+    padding-top: 20px;
+}
+
+#login-image{
+    float: right;;
+}
+
+img {
+  border-radius: 4px;
+}
+
+
+
+#button {
+    text-decoration: none;
+    background-color: #EEEEEE;
+    color: #333333;
+    padding: 2px 6px 2px 6px;
+    border-top: 1px solid #CCCCCC;
+    border-right: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    border-left: 1px solid #CCCCCC;
+}
+
+
+
+/*Navigation bar css */
+.navigation{
+	  width: 800px;
+  	height: 34px;
+  	background-color: green;
+	  text-align: center;
+    margin: 0 auto;
+    border: 1px solid #000;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 8px 8px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: #111;
+}
+
+
+
+/* Content */
+.content{
+  	width: 800px;
+    min-height: 100px;
+    overflow: hidden;
+   	background-color: lightgray;
+  	text-align: center;
+    margin: 0 auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border: 1px solid #000;
+}
+
+#pass-to-me {
+
+}

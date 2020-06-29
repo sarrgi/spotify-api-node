@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="/css/style.css">
+        <title>index.html</title>
+    </head>
+
+    <body>
+        <!-- Header Box -->
+        <div class = "header">
+            <div id = "header-title">
+                <h1>Bad Spotify API Calls</h1>
+            </div>
+
+            <div id = "header-login">
+                <% if (typeof display_name != 'string') { %> <!--Not logged in -->
+                    <a href="/login" class="button">Log in.</a>
+                <% } else { %>                               <!--Logged in-->
+                    <div id = "login-name">
+                        <div id = "login-name-text"><%= display_name %></div>
+                    </div>
+                    <div id = "login-image">
+                        <% if (login_image.length == 0) { %>
+                            <img width="64" src="/images/default_profile.png"/>
+                        <% } else { %>
+                            <img width="72" src="<%= login_image %>"/>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Naviagation box-->
+        <div class="navigation">
+            <ul>
+                <li><a href="/" class="button">Home</a></li>
+                <!-- Onlt show if logged in: -->
+                <% if (typeof display_name == 'string') { %>
+                <li><a href="/personalization" class="button">Top Songs</a></li>
+                <% } %>
+            </ul>
+        </div>
+
+        <!-- Content box -->
+        <div class="content">
+            <div id = "pass-to-me">
+                <% if (typeof top_songs == 'object') { %>
+                    <!--Display Selection-->
+                    <form action="/new-tracks-form">
+                        <label for="track_amount">Change amount (max 50)</label>
+                        <input type="text" id="track_amount" name="track_amount" maxlength="2" size="2"><br>
+                        <input type="submit" value="Update">
+                    </form>
+
+                    <br/>
+                    <!--Display songs -->
+                    Top <%= top_songs.length %> Songs:
+                    <% for (var i = 0; i < top_songs.length;  i++ ) { %>
+                        <% if (i % 5 == 0) { %> <br/> <% } %>
+                        <!-- TEXT VERSION <%= top_songs[i] + ' - ' + top_artists[i] +  ' (' + top_albums[i] + ')' %> -->
+                        <img width="150" src="<%= top_albums_images[i] %>" title="<%= top_songs[i] + ' - ' + top_artists[i] +  ' (' + top_albums[i] + ')' %>" />
+                    <% } %>
+                <% } %>
+            </div>
+        </div>
+
+
+        <!-- Other Scripts -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+
+    </body>
+</html>
