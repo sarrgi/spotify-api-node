@@ -23,7 +23,7 @@
                         <% if (login_image.length == 0) { %>
                             <img width="64" src="/images/default_profile.png"/>
                         <% } else { %>
-                            <img width="72" src="<%= login_image %>"/>
+                            <img width="64" src="<%= login_image %>"/>
                         <% } %>
                     </div>
                 <% } %>
@@ -33,10 +33,10 @@
         <!-- Naviagation box-->
         <div class="navigation">
             <ul>
-                <li><a href="/" class="button">Home</a></li>
+                <li><a href="/" class="navButton">Home</a></li>
                 <!-- Onlt show if logged in: -->
                 <% if (typeof display_name == 'string') { %>
-                <li><a href="/personalization" class="button">Top Songs</a></li>
+                <li><a href="/personalization" class="navButton">Top Songs</a></li>
                 <% } %>
             </ul>
         </div>
