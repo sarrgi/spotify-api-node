@@ -4,7 +4,8 @@ body {
 }
 
 h1 {
-  text-align: left;
+  text-align: center;
+  margin: 8px;
 }
 
 h2 {
@@ -22,60 +23,60 @@ img {
 }
 
 
-.button {
-    vertical-align: middle;
-    color: orange;
-    background-color: #EEEEEE;
-    /* padding: 5px 10px 5px; */
-    /* border-style: solid;
-    border-color: black;
-    border-width: 1px;
-    border-radius: 5px; */
+#login-button-container{
+  padding-top: 17px;
+}
+
+.login-button {
+    color: white;
+    background-color: #333333;
+    padding: 10px 70px 10px;
+    border-radius: 4px;
+}
+
+.login-button:hover{
+  background-color: black;
+  color: orange;
 }
 
 /*Header Styling*/
 .header{
     border: 1px solid #000;
     width: 800px;
-    height:64px;
+    height:50px;
     text-align: center;
-    margin: 0 auto;
-  	background-color: yellow;
+    margin: auto;
+  	background-color: lightgray;
 }
 
 #header-title{
     vertical-align: middle;
-	  width: 600px;
-	  height:64px;
+	  width: 400px;
+	  height:50px;
 	  float: left;
-	  background-color: lightgray;
+	  /* background-color: orange; */
 }
 
 #header-login{
-	  width: 200px;
-	  height: 64px;
-	  float: left;
-    /* text-align: center; */
-    margin: auto;
-	  background-color: darkgray;
+  width: 200px;
+  height: 50px;
+  float: right;
+  /* background-color: darkgray; */
 }
 
 #login-name {
-    width: 128px;
-    text-align: center;
-    font-size: 18px;
-    font-family: serif;
-    float: left;
-    height: 64px;
-}
-
-#login-name-text{
-    text-align:center;
-    padding-top: 20px;
+  width: 136px;
+  height: 50px;
+  text-align: center;
+  font-size: 18px;
+  font-family: serif;
+  float: left;
+  margin: 14px 0px 0px 0px;
+  overflow: hidden; /*TODO scale on name length*/
 }
 
 #login-image{
-    float: right
+  float: right;
 }
 
 
@@ -107,7 +108,7 @@ ul {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #333;
+    background-color: #333333;
 }
 
 li {
@@ -123,7 +124,8 @@ li a {
 }
 
 li a:hover {
-    background-color: #111;
+  background-color: #111111;
+  color: orange;
 }
 
 
