@@ -6,8 +6,9 @@ var ejs = require('ejs');
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
-//local library for client secrets
-var clientSecrets = require('./client-info.js');
+//local libraries used
+var clientSecrets = require('./client-info.js'); //You will need to create your own client-info.js file
+var parsingHelper = require('./parsing-helper.js');
 
 //app object
 const app = new express();
@@ -20,40 +21,41 @@ app.use(express.static(path.join(__dirname, 'views/public'))) //allow access to 
 //set app to use ejs engine
 app.set('view engine', 'ejs');
 
-
 //global vars
 const PORT = 8888;
-const MAX_TRACKS = 50;
 var stateKey = 'spotify_auth_state';
+//links to redirect form spotify service from - MUST BE WHITELISTED
 var redirect_uri = 'http://localhost:8888/callback';
 var redirect_top_songs = 'http://localhost:8888/top-songs-redirect';
 var redirect_top_artists = 'http://localhost:8888/top-artists-redirect';
-var redirect_home = 'http://localhost:8888';
-
-//TODO: better system for these global vars
+//general global vars
+const MAX_TRACKS = 50;
 var loggedin = false;
 var access_token;
 var refresh_token;
-//login
-var display_name;
-var login_image;
-//top songs
-var top_songs_artists;
-var top_songs_name;
-var top_songs_albums;
-var top_songs_albums_images;
+//get req vars
 var top_tracks_limit = 25;
 var top_tracks_time = 'short_term';
-//top artists
-var top_artists_names;
-var top_artists_images;
+// data from server stored in moemory
+var loggedInData;
+var topSongsData;
+var topArtistsData;
 
-//connect to home page (index.ejs)
+
+/**
+ * Connect to home page (index.ejs).
+ */
 app.get('/', function(request, response) {
-  response.render('public/index', {
-    display_name: display_name,
-    login_image: login_image
-  });
+  if (typeof loggedInData == "undefined"){
+    //render with no user data
+    response.render('public/index', {});
+  } else {
+    //render with user's image
+    response.render('public/index', {
+      display_name: loggedInData.display_name,
+      login_image: loggedInData.login_image
+    });
+  }
 });
 
 //make the server actually listen to site
@@ -75,16 +77,13 @@ app.get('/login', function(req, res) {
 
 
 /**
-* Get request from html page for top songs.
+* Call back from login "request.
+* Used for authentication.
 */
-app.get('/get-top-songs', function(req, res) {
-  //set cookie
-  state = generateRandomString(16);
-  res.cookie(stateKey, state);
-
-  //call API
-  var scope = 'user-read-private user-read-email user-top-read';
-  apiInitCall(scope, redirect_top_songs, res);
+app.get('/callback', function(req, res) {
+  var url = 'https://api.spotify.com/v1/me';
+  var redirect_auth = redirect_uri;
+  apiReqData(url, redirect_auth, req, res);
 });
 
 
@@ -94,13 +93,13 @@ app.get('/get-top-songs', function(req, res) {
 */
 app.get('/top-songs', function(req, res) {
   res.render('public/index', {
-    display_name: display_name,
-    login_image: login_image,
-    top_artists: top_songs_artists,
-    top_songs: top_songs_name,
-    top_albums: top_songs_albums,
+    display_name: loggedInData.display_name,
+    login_image: loggedInData.login_image,
+    top_artists: topSongsData.top_songs_artists,
+    top_songs: topSongsData.top_songs_name,
+    top_albums: topSongsData.top_songs_albums,
+    top_albums_images: topSongsData.top_songs_albums_images,
     time_length: timeLimitDisplay(top_tracks_time),
-    top_albums_images: top_songs_albums_images
   });
 });
 
@@ -111,16 +110,18 @@ app.get('/top-songs', function(req, res) {
 */
 app.get('/top-artists', function(req, res) {
   res.render('public/index', {
-    display_name: display_name,
-    login_image: login_image,
-    top_artists_names: top_artists_names,
-    top_artists_images: top_artists_images,
+    display_name: loggedInData.display_name,
+    login_image: loggedInData.login_image,
+    top_artists_names: topArtistsData.top_artists_names,
+    top_artists_images: topArtistsData.top_artists_images,
     time_length: timeLimitDisplay(top_tracks_time)
   });
 });
 
 
-
+/**
+ * Get request from html page to server for updating user's top artists.
+ */
 app.get('/get-top-artists', function(req, res) {
   //set cookie
   state = generateRandomString(16);
@@ -131,34 +132,18 @@ app.get('/get-top-artists', function(req, res) {
   apiInitCall(scope, redirect_top_artists, res);
 });
 
-/**
-* Page for seeing users top songs.
-* Contains all data sent to page.
-*/
-app.get('/top-artists', function(req, res) {
-  console.log("we out here");
-  // res.render('public/index', {
-  //     display_name: display_name,
-  //     login_image: login_image,
-  //     top_artists: top_artists,
-  //     top_songs: top_songs,
-  //     top_albums: top_albums,
-  //     time_length: timeLimitDisplay(top_tracks_time),
-  //     top_albums_images: top_albums_images
-  // });
-});
-
-
-
 
 /**
-* Render home page with user logged in.
+* Get request from html page to server for updating user's top songs.
 */
-app.get('/render-login', function(req, res){
-  res.render('public/index', {
-    display_name: display_name,
-    login_image: login_image
-  });
+app.get('/get-top-songs', function(req, res) {
+  //set cookie
+  state = generateRandomString(16);
+  res.cookie(stateKey, state);
+
+  //call API
+  var scope = 'user-read-private user-read-email user-top-read';
+  apiInitCall(scope, redirect_top_songs, res);
 });
 
 
@@ -182,17 +167,6 @@ app.get('/top-artists-redirect', function(req, res) {
   var url = 'https://api.spotify.com/v1/me/top/artists'
   + '?limit=' + top_tracks_limit + '&time_range=' + top_tracks_time; //TODO: seperate the params from songs?
   var redirect_auth = redirect_top_artists;
-  apiReqData(url, redirect_auth, req, res);
-});
-
-
-
-/**
-* Call back from login "page".
-*/
-app.get('/callback', function(req, res) {
-  var url = 'https://api.spotify.com/v1/me';
-  var redirect_auth = redirect_uri;
   apiReqData(url, redirect_auth, req, res);
 });
 
@@ -270,7 +244,6 @@ app.get('/refresh_token', function(req, res) {
 });
 
 
-
 /**
 * Start a call to spotify API from start of the suthorization flow.
 * @param {scope} - string represeting the scope of this call - see: https://developer.spotify.com/documentation/general/guides/scopes/
@@ -288,7 +261,6 @@ function apiInitCall(scope, redirect_link, res){
   })
 );
 };
-
 
 /**
 * Method for querying the spotify API.
@@ -339,14 +311,19 @@ function apiReqData(url, redirect_auth, req, res){
           // console.log(body);
           if(!loggedin){
             loggedin = true;
-            parseApiLogin(body, res);
+            loggedInData = parsingHelper.parseApiLogin(body);
+            res.redirect('/');
           }
           if(loggedin && body.hasOwnProperty('items')){
-            //TODO length check? and more sustainable system
-            if(isTrack(body.items[0])){
-              parseApiTracks(body, res);
-            } else if (isArtist(body.items[0])){
-              parseApiArtists(body, res);
+            //TODO length check?
+            if(parsingHelper.isTrack(body.items[0])){
+              //parse songs
+              topSongsData = parsingHelper.parseApiTracks(body);
+              res.redirect('/top-songs');
+            } else if (parsingHelper.isArtist(body.items[0])){
+              //parse artists
+              topArtistsData = parsingHelper.parseApiArtists(body);
+              res.redirect('/top-artists');
             }
           }
         });
@@ -360,85 +337,6 @@ function apiReqData(url, redirect_auth, req, res){
   }
 }
 
-
-/**
-* Method which redirects from render-login back to the home page.
-*/
-function parseApiLogin(obj, res){
-  display_name = obj.display_name;
-  login_image = obj.images[0].url;
-  res.redirect('/');
-}
-
-
-/**
-* Method for parsing the tracks obtained via the top tracks get request.
-* Redirects user to the top-songs page upon completion.
-* @param {obj} - JSON object.
-* @param {obj} - Http response.
-*/
-function parseApiTracks(obj, res){
-  /*
-  Useful info for top tracks
-  Artists    = obj.items[x].artists[y]
-  Song name  = obj.items[x].name
-  Album name = obj.items[x].album.name
-  Album image = obj.items[x].album.images[0].url
-
-  */
-  top_songs_artists = new Array(obj.items.length);
-  top_songs_name = new Array(obj.items.length);
-  top_songs_albums = new Array(obj.items.length);
-  top_songs_albums_images = new Array(obj.items.length);
-
-  for (let i = 0; i < obj.items.length; i++){
-    //get all artists
-    var artists = obj.items[i].artists;
-
-    var artists_string = '';
-    for (let j = 0; j < artists.length; j++){
-      artists_string += artists[j].name;
-      if (j != artists.length - 1){
-        artists_string += ', ';
-      }
-    }
-
-    //add to respective arrays
-    top_songs_artists[i] = artists_string;
-    top_songs_name[i] = obj.items[i].name;
-    top_songs_albums[i] = obj.items[i].album.name;
-    top_songs_albums_images[i] = obj.items[i].album.images[0].url;
-  }
-
-  res.redirect('/top-songs');
-}
-
-
-
-/**
-* Method for parsing the artists obtained via the top artists get request.
-* Redirects user to the top-artists page upon completion.
-* @param {obj} - JSON object.
-* @param {obj} - Http response.
-*/
-function parseApiArtists(obj, res){
-  top_artists_names = new Array(obj.items.length);
-  top_artists_images = new Array(obj.items.length); // TODO: NOTE: images is USUALLY 3 long
-  // console.log(obj);
-  for (let i = 0; i < obj.items.length; i++){
-    top_artists_names[i] = obj.items[i].name;
-    //parse images url
-    var image_refs = new Array(obj.items[i].images.length);
-    for (let j = 0; j < obj.items[i].images.length; j++){
-      image_refs[j] = obj.items[i].images[j].url;
-    }
-    top_artists_images[i] = image_refs;
-  }
-
-  res.redirect('/top-artists');
-}
-
-
 /**
 * Method for returning string to display relative to time length.
 * @param  {time_length} - Value of time length in form.
@@ -451,45 +349,6 @@ var timeLimitDisplay = function(time_length){
   }
   //TODO: error case
   return "error";
-}
-
-/**
-* Checks if an object is an artists based on the simplified artist object.
-* Reference: https://developer.spotify.com/documentation/web-api/reference/object-model/#artist-object-simplified.
-* @param  {object} - Object being compared to see if it is an artist.
-*/
-var isArtist = function(object){
-  return object.hasOwnProperty("external_urls")
-  && object.hasOwnProperty("href")
-  && object.hasOwnProperty("id")
-  && object.hasOwnProperty("name")
-  && object.hasOwnProperty("type")
-  && object.hasOwnProperty("uri");
-}
-
-/**
-* Checks if an object is a track based on the simplified track object.
-* Could use full track  object but even the simple one ahs more than enough parameters to ensure object is a track.
-* Reference: https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-simplified.
-* @param  {object} - Object being compared to see if it is a track.
-*/
-var isTrack = function(object){
-  return object.hasOwnProperty("album")
-  && object.hasOwnProperty("artists")
-  && object.hasOwnProperty("available_markets")
-  && object.hasOwnProperty("disc_number")
-  && object.hasOwnProperty("duration_ms")
-  && object.hasOwnProperty("explicit")
-  && object.hasOwnProperty("external_urls")
-  && object.hasOwnProperty("href")
-  && object.hasOwnProperty("id")
-  && object.hasOwnProperty("name")
-  && object.hasOwnProperty("preview_url")
-  && object.hasOwnProperty("track_number")
-  && object.hasOwnProperty("type")
-  && object.hasOwnProperty("uri")
-  && object.hasOwnProperty("is_local")
-  ;
 }
 
 /**
