@@ -21,6 +21,7 @@ img {
   border-radius: 4px;
 }
 
+
 .button {
     vertical-align: middle;
     color: orange;
@@ -138,6 +139,13 @@ li a:hover {
     padding-top: 10px;
     padding-bottom: 10px;
     border: 1px solid #000;
+
+}
+
+#content-img-crop {
+  object-fit: cover;
+  width: 150px;
+  height: 150px;
 }
 
 

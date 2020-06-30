@@ -100,9 +100,8 @@
           <p> Hover over for an artist for details. </p>
           <% for (var i = 0; i < top_artists_names.length;  i++ ) { %>
             <% if (i % 5 == 0) { %> <br/> <% } %>
-            <img width="150" src="<%= top_artists_images[i][0] %>" title="<%= top_artists_names[i] %>" />
+            <img id="content-img-crop" src="<%= top_artists_images[i][0] %>" title="<%= top_artists_names[i] %>" />
           <% } %>
-
         <% } %>
       </div>
     </div>

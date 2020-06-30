@@ -199,6 +199,7 @@ app.get('/callback', function(req, res) {
 
 /**
 * Update the current tracks being displayed in the top songs page.
+* Is the call point from html page to update the songs list.
 */
 app.get('/new-tracks-form', function(req, res) {
   console.log("User requested \"" + req.query.track_amount + "\" top tracks, on \"" + req.query.time_length +"\" length.");
@@ -211,10 +212,30 @@ app.get('/new-tracks-form', function(req, res) {
     //invalid track amount redirect
     res.redirect('/top-songs#' +
     querystring.stringify({
-      error: 'invalid_track_amount'
-    })
-  );
-}
+      error: 'invalid_songs_amount'
+    }));
+  }
+});
+
+
+/**
+* Update the current tracks being displayed in the top songs page.
+* Is the call point from html page to update the artists list.
+*/
+app.get('/new-artists-form', function(req, res) {
+  console.log("User requested \"" + req.query.track_amount + "\" top artists, on \"" + req.query.time_length +"\" length.");
+
+  top_tracks_time = req.query.time_length; //TODO: verify?
+  if (req.query.track_amount > 0 && req.query.track_amount <= MAX_TRACKS){
+    top_tracks_limit = req.query.track_amount;
+    res.redirect('/get-top-artists');
+  } else {
+    //invalid track amount redirect
+    res.redirect('/top-artists#' +
+    querystring.stringify({
+      error: 'invalid_artists_amount'
+    }));
+  }
 });
 
 
