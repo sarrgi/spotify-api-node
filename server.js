@@ -32,17 +32,21 @@ var redirect_home = 'http://localhost:8888';
 
 //TODO: better system for these global vars
 var loggedin = false;
-var top_tracks_limit = 25;
-var top_tracks_time = 'short_term';
 var access_token;
 var refresh_token;
+//login
+var display_name;
+var login_image;
+//top songs
 var top_songs_artists;
 var top_songs_name;
 var top_songs_albums;
 var top_songs_albums_images;
-var display_name;
-var login_image;
-
+var top_tracks_limit = 25;
+var top_tracks_time = 'short_term';
+//top artists
+var top_artists_names;
+var top_artists_images;
 
 //connect to home page (index.ejs)
 app.get('/', function(request, response) {
@@ -97,6 +101,21 @@ app.get('/top-songs', function(req, res) {
     top_albums: top_songs_albums,
     time_length: timeLimitDisplay(top_tracks_time),
     top_albums_images: top_songs_albums_images
+  });
+});
+
+
+/**
+* Page for seeing users top songs.
+* Contains all data sent to page.
+*/
+app.get('/top-artists', function(req, res) {
+  res.render('public/index', {
+    display_name: display_name,
+    login_image: login_image,
+    top_artists_names: top_artists_names,
+    top_artists_images: top_artists_images,
+    time_length: timeLimitDisplay(top_tracks_time)
   });
 });
 
@@ -266,60 +285,58 @@ function apiReqData(url, redirect_auth, req, res){
     res.redirect('/#' +
     querystring.stringify({
       error: 'state_mismatch'
-    })
-  );
-} else {
-  res.clearCookie(stateKey);
+    }));
+  } else {
+    res.clearCookie(stateKey);
 
-  var authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    form: {
-      code: code,
-      redirect_uri: redirect_auth,
-      grant_type: 'authorization_code'
-    },
-    headers: {
-      'Authorization': 'Basic ' + (new Buffer.from(clientSecrets.client_id + ':' + clientSecrets.client_secret).toString('base64'))
-    },
-    json: true
-  };
+    var authOptions = {
+      url: 'https://accounts.spotify.com/api/token',
+      form: {
+        code: code,
+        redirect_uri: redirect_auth,
+        grant_type: 'authorization_code'
+      },
+      headers: {
+        'Authorization': 'Basic ' + (new Buffer.from(clientSecrets.client_id + ':' + clientSecrets.client_secret).toString('base64'))
+      },
+      json: true
+    };
 
-  request.post(authOptions, function(error, response, body) {
-    if (!error && response.statusCode === 200) {
-      access_token = body.access_token;
-      refresh_token = body.refresh_token;
+    request.post(authOptions, function(error, response, body) {
+      if (!error && response.statusCode === 200) {
+        access_token = body.access_token;
+        refresh_token = body.refresh_token;
 
-      var options = {
-        url: url,
-        headers: { 'Authorization': 'Bearer ' + access_token },
-        json: true
-      };
+        var options = {
+          url: url,
+          headers: { 'Authorization': 'Bearer ' + access_token },
+          json: true
+        };
 
-      // use the access token to access the Spotify Web API
-      request.get(options, function(error, response, body) {
-        // console.log(body);
-        if(!loggedin){
-          loggedin = true;
-          parseApiLogin(body, res);
-        }
-        if(loggedin && body.hasOwnProperty('items')){
-          //TODO length check? and more sustainable system
-          if(isTrack(body.items[0])){
-            parseApiTracks(body, res);
-          } else if (isArtist(body.items[0])){
-            parseApiArtists(body, res);
+        // use the access token to access the Spotify Web API
+        request.get(options, function(error, response, body) {
+          // console.log(body);
+          if(!loggedin){
+            loggedin = true;
+            parseApiLogin(body, res);
           }
-        }
-      });
-    } else {  //error
-      res.redirect('/#' +
-      querystring.stringify({
-        error: 'invalid_token'
-      })
-    );
+          if(loggedin && body.hasOwnProperty('items')){
+            //TODO length check? and more sustainable system
+            if(isTrack(body.items[0])){
+              parseApiTracks(body, res);
+            } else if (isArtist(body.items[0])){
+              parseApiArtists(body, res);
+            }
+          }
+        });
+      } else {  //error
+        res.redirect('/#' +
+        querystring.stringify({
+          error: 'invalid_token'
+        })
+      );
+    }});
   }
-});
-}
 }
 
 
@@ -335,6 +352,7 @@ function parseApiLogin(obj, res){
 
 /**
 * Method for parsing the tracks obtained via the top tracks get request.
+* Redirects user to the top-songs page upon completion.
 * @param {obj} - JSON object.
 * @param {obj} - Http response.
 */
@@ -374,9 +392,29 @@ function parseApiTracks(obj, res){
   res.redirect('/top-songs');
 }
 
+
+
+/**
+* Method for parsing the artists obtained via the top artists get request.
+* Redirects user to the top-artists page upon completion.
+* @param {obj} - JSON object.
+* @param {obj} - Http response.
+*/
 function parseApiArtists(obj, res){
-  // top_artists = new Array(obj.items.length);
-  console.log(obj);
+  top_artists_names = new Array(obj.items.length);
+  top_artists_images = new Array(obj.items.length); // TODO: NOTE: images is USUALLY 3 long
+  // console.log(obj);
+  for (let i = 0; i < obj.items.length; i++){
+    top_artists_names[i] = obj.items[i].name;
+    //parse images url
+    var image_refs = new Array(obj.items[i].images.length);
+    for (let j = 0; j < obj.items[i].images.length; j++){
+      image_refs[j] = obj.items[i].images[j].url;
+    }
+    top_artists_images[i] = image_refs;
+  }
+
+  res.redirect('/top-artists');
 }
 
 
@@ -393,7 +431,6 @@ var timeLimitDisplay = function(time_length){
   //TODO: error case
   return "error";
 }
-
 
 /**
 * Checks if an object is an artists based on the simplified artist object.
@@ -433,8 +470,6 @@ var isTrack = function(object){
   && object.hasOwnProperty("is_local")
   ;
 }
-
-
 
 /**
 * (Taken from web tutorial)

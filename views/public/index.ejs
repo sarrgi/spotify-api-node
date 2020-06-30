@@ -1,87 +1,116 @@
 <!doctype html>
 <html>
-    <head>
-        <link rel="stylesheet" type="text/css" href="/css/style.css">
-        <title>index.html</title>
-    </head>
+<head>
+  <link rel="stylesheet" type="text/css" href="/css/style.css">
+  <title>index.html</title>
+</head>
 
-    <body>
-        <!-- Header Box -->
-        <div class = "header">
-            <div id = "header-title">
-                <h1>Bad Spotify API Calls</h1>
-            </div>
+<body>
+  <!-- Header Box -->
+  <div class = "header">
+    <div id = "header-title">
+      <h1>Bad Spotify API Calls</h1>
+    </div>
 
-            <div id = "header-login">
-                <% if (typeof display_name != 'string') { %> <!--Not logged in -->
-                    <a href="/login" class="button">Log in.</a>
-                <% } else { %>                               <!--Logged in-->
-                    <div id = "login-name">
-                        <div id = "login-name-text"><%= display_name %></div>
-                    </div>
-                    <div id = "login-image">
-                        <% if (login_image.length == 0) { %>
-                            <img width="64" src="/images/default_profile.png"/>
-                        <% } else { %>
-                            <img width="64" src="<%= login_image %>"/>
-                        <% } %>
-                    </div>
-                <% } %>
-            </div>
-        </div>
+    <div id = "header-login">
+      <% if (typeof display_name != 'string') { %> <!--Not logged in -->
+        <a href="/login" class="button">Log in.</a>
+      <% } else { %>                               <!--Logged in-->
+        <div id = "login-name"></div>
+        <div id = "login-name-text"><%= display_name %></div>
+        <div id = "login-image">
+        <% if (login_image.length == 0) { %>
+          <img width="64" src="/images/default_profile.png"/>
+        <% } else { %>
+          <img width="64" src="<%= login_image %>"/>
+        <% } %>
+      </div>
+    <% } %>
+    </div>
+  </div>
 
-        <!-- Naviagation box-->
-        <div class="navigation">
-            <ul>
-                <li><a href="/" class="navButton">Home</a></li>
-                <!-- Onlt show if logged in: -->
-                <% if (typeof display_name == 'string') { %>
-                <li><a href="/get-top-songs" class="navButton">Top Songs</a></li>
-                <li><a href="/get-top-artists" class="navButton">Top Artists</a></li>
-                <% } %>
-            </ul>
-        </div>
+    <!-- Naviagation box-->
+    <div class="navigation">
+      <ul>
+        <li><a href="/" class="navButton">Home</a></li>
+        <!-- Onlt show if logged in: -->
+        <% if (typeof display_name == 'string') { %>
+          <li><a href="/get-top-songs" class="navButton">Top Songs</a></li>
+          <li><a href="/get-top-artists" class="navButton">Top Artists</a></li>
+        <% } %>
+      </ul>
+    </div>
 
-        <!-- Content box -->
-        <div class="content">
-            <div id = "pass-to-me">
-                <% if (typeof top_songs == 'object') { %>
-                    <!-- Title -->
-                    <h2>Your Top <%= top_songs.length %> Songs of <%= time_length %>.</h2>
-                    <!--Display Selection-->
-                    <div class = "new-tracks-form">
-                    <form action="/new-tracks-form">
-                        <!--Amount-->
-                        <label for="track_amount">Change Amount (Max 50)</label>
-                        <input type="text" id="track_amount" name="track_amount" maxlength="2" size="1" value="25"><br>
-                        <!-- Time length -->
-                        <label for="time_length">Time Length</label>
-                        <select id="time_length" name="time_length">
-                            <option value="short_term">Last 4 weeks</option>
-                            <option value="medium_term">Last 6 Months</option>
-                            <option value="long_term">All Time</option>
-                        </select>
-                        <br>
-                        <input type="submit" value="Update">
-                    </form>
-                  </div>
+    <!-- Content box -->
+    <div class="content">
+      <div id = "pass-to-me">
+        <!-- display top songs content-->
+        <% if (typeof top_songs == 'object') { %>
+          <!-- Title -->
+          <h2>Your Top <%= top_songs.length %> Songs of <%= time_length %>.</h2>
+          <!--Display Selection-->
+          <div class = "new-tracks-form">
+            <form action="/new-tracks-form">
+              <!--Amount-->
+              <label for="track_amount">Change Amount (Max 50)</label>
+              <input type="text" id="track_amount" name="track_amount" maxlength="2" size="1" value="25"><br>
+              <!-- Time length -->
+              <label for="time_length">Time Length</label>
+              <select id="time_length" name="time_length">
+                <option value="short_term">Last 4 weeks</option>
+                <option value="medium_term">Last 6 Months</option>
+                <option value="long_term">All Time</option>
+              </select>
+              <br>
+              <input type="submit" value="Update">
+            </form>
+          </div>
 
-                    <br>
-                    <!--Display songs -->
-                    <p> Hover over for a song for details. </p>
-                    <% for (var i = 0; i < top_songs.length;  i++ ) { %>
-                        <% if (i % 5 == 0) { %> <br/> <% } %>
-                        <!-- TEXT VERSION <%= top_songs[i] + ' - ' + top_artists[i] +  ' (' + top_albums[i] + ')' %> -->
-                        <img width="150" src="<%= top_albums_images[i] %>" title="<%= top_songs[i] + ' - ' + top_artists[i] +  ' (' + top_albums[i] + ')' %>" />
-                    <% } %>
-                <% } %>
-            </div>
-        </div>
+          <br>
+          <!--Display songs -->
+          <p> Hover over for a song for details. </p>
+          <% for (var i = 0; i < top_songs.length;  i++ ) { %>
+            <% if (i % 5 == 0) { %> <br/> <% } %>
+            <!-- TEXT VERSION <%= top_songs[i] + ' - ' + top_artists[i] +  ' (' + top_albums[i] + ')' %> -->
+            <img width="150" src="<%= top_albums_images[i] %>" title="<%= top_songs[i] + ' - ' + top_artists[i] +  ' (' + top_albums[i] + ')' %>" />
+          <% } %>
+
+            <!-- display top artists content-->
+        <% } else if (typeof top_artists_names == 'object') { %>
+          <!-- Title -->
+          <h2>Your Top <%= top_artists_names.length %> Artists of <%= time_length %>.</h2>
+          <!--Display Selection TODO: reuse same form?-->
+          <div class = "new-tracks-form">
+            <form action="/new-artists-form">
+              <!--Amount-->
+              <label for="track_amount">Change Amount (Max 50)</label>
+              <input type="text" id="track_amount" name="track_amount" maxlength="2" size="1" value="25"><br>
+              <!-- Time length -->
+              <label for="time_length">Time Length</label>
+              <select id="time_length" name="time_length">
+                <option value="short_term">Last 4 weeks</option>
+                <option value="medium_term">Last 6 Months</option>
+                <option value="long_term">All Time</option>
+              </select>
+              <br>
+              <input type="submit" value="Update">
+            </form>
+          </div>
+          <!--Display Artists -->
+          <p> Hover over for an artist for details. </p>
+          <% for (var i = 0; i < top_artists_names.length;  i++ ) { %>
+            <% if (i % 5 == 0) { %> <br/> <% } %>
+            <img width="150" src="<%= top_artists_images[i][0] %>" title="<%= top_artists_names[i] %>" />
+          <% } %>
+
+        <% } %>
+      </div>
+    </div>
 
 
-        <!-- Other Scripts -->
-        <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
-        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!-- Other Scripts -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0-alpha.1/handlebars.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
 
-    </body>
+  </body>
 </html>
