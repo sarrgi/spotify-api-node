@@ -2,7 +2,7 @@
 <html>
 <head>
   <link rel="stylesheet" type="text/css" href="/css/style.css">
-  <title>index.html</title>
+  <title>Spotify API</title>
 </head>
 
 <body>
@@ -23,12 +23,15 @@
         <div id = "login-name">
           <%= display_name %>
         </div>
-        <div id = "login-image">
+        <div class = "login-image">
           <% if (login_image.length == 0) { %>
             <img width="50" src="/images/default_profile.png"/>
           <% } else { %>
             <img width="50" src="<%= login_image %>"/>
           <% } %>
+          <div class="login-dropdown">
+            <a href="/logout">Log Out</a>
+          </div>
         </div>
     <% } %>
     </div>
@@ -42,6 +45,7 @@
         <% if (typeof display_name == 'string') { %>
           <li><a href="/get-top-songs" class="navButton">Top Songs</a></li>
           <li><a href="/get-top-artists" class="navButton">Top Artists</a></li>
+          <li><a href="/get-top-artists" class="navButton">Log out</a></li>
         <% } %>
       </ul>
     </div>

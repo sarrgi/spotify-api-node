@@ -77,6 +77,15 @@ app.get('/login', function(req, res) {
 
 
 /**
+* Login redirect.
+*/
+app.get('/logout', function(req, res) {
+  //set cookie
+
+});
+
+
+/**
 * Call back from login "request.
 * Used for authentication.
 */
