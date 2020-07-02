@@ -24,10 +24,12 @@ app.set('view engine', 'ejs');
 //global vars
 const PORT = 8888;
 var stateKey = 'spotify_auth_state';
+var scope = 'user-read-private user-read-email user-top-read playlist-modify-private playlist-read-private';
 //links to redirect form spotify service from - MUST BE WHITELISTED
 var redirect_uri = 'http://localhost:8888/callback';
 var redirect_top_songs = 'http://localhost:8888/top-songs-redirect';
 var redirect_top_artists = 'http://localhost:8888/top-artists-redirect';
+var redirect_playlists = 'http://localhost:8888/playlists-redirect';
 //general global vars
 const MAX_TRACKS = 50;
 var loggedin = false;
@@ -36,7 +38,7 @@ var refresh_token;
 //get req vars
 var top_tracks_limit = 25;
 var top_tracks_time = 'short_term';
-// data from server stored in moemory
+// data from server stored in memory
 var loggedInData;
 var topSongsData;
 var topArtistsData;
@@ -52,7 +54,7 @@ app.get('/', function(request, response) {
   } else {
     //render with user's image
     response.render('public/index', {
-      display_name: loggedInData.display_name,
+      display_name: loggedInData.user_id,
       login_image: loggedInData.login_image
     });
   }
@@ -71,19 +73,19 @@ app.get('/login', function(req, res) {
   res.cookie(stateKey, state);
 
   //call API
-  var scope = 'user-read-private user-read-email user-top-read';
   apiInitCall(scope, redirect_uri, res);
 });
 
 
 /**
-* Login redirect.
+* Logout redirect.
 */
 app.get('/logout', function(req, res) {
-  //set cookie
+  //clear data
   res.clearCookie(stateKey);
   loggedin = false;
   loggedInData = undefined;
+  //redirect to home
   res.redirect('/');
 });
 
@@ -100,6 +102,19 @@ app.get('/callback', function(req, res) {
 
 
 /**
+* Get request from html page to server for updating user's top songs.
+*/
+app.get('/get-top-songs', function(req, res) {
+  //set cookie
+  state = generateRandomString(16);
+  res.cookie(stateKey, state);
+
+  //call API
+  apiInitCall(scope, redirect_top_songs, res);
+});
+
+
+/**
 * Page for seeing users top songs.
 * Contains all data sent to page.
 */
@@ -109,7 +124,7 @@ app.get('/top-songs', function(req, res) {
     res.redirect('/');
   } else {
     res.render('public/index', {
-      display_name: loggedInData.display_name,
+      display_name: loggedInData.user_id,
       login_image: loggedInData.login_image,
       top_artists: topSongsData.top_songs_artists,
       top_songs: topSongsData.top_songs_name,
@@ -118,54 +133,6 @@ app.get('/top-songs', function(req, res) {
       time_length: timeLimitDisplay(top_tracks_time),
     });
   }
-});
-
-
-/**
-* Page for seeing users top songs.
-* Contains all data sent to page.
-*/
-app.get('/top-artists', function(req, res) {
-  if(!loggedin){
-    //TODO: redirect to a login popup
-    res.redirect('/');
-  } else {
-    res.render('public/index', {
-      display_name: loggedInData.display_name,
-      login_image: loggedInData.login_image,
-      top_artists_names: topArtistsData.top_artists_names,
-      top_artists_images: topArtistsData.top_artists_images,
-      time_length: timeLimitDisplay(top_tracks_time)
-    });
-  }
-});
-
-
-/**
- * Get request from html page to server for updating user's top artists.
- */
-app.get('/get-top-artists', function(req, res) {
-  //set cookie
-  state = generateRandomString(16);
-  res.cookie(stateKey, state);
-
-  //call API
-  var scope = 'user-read-private user-read-email user-top-read';
-  apiInitCall(scope, redirect_top_artists, res);
-});
-
-
-/**
-* Get request from html page to server for updating user's top songs.
-*/
-app.get('/get-top-songs', function(req, res) {
-  //set cookie
-  state = generateRandomString(16);
-  res.cookie(stateKey, state);
-
-  //call API
-  var scope = 'user-read-private user-read-email user-top-read';
-  apiInitCall(scope, redirect_top_songs, res);
 });
 
 
@@ -182,6 +149,39 @@ app.get('/top-songs-redirect', function(req, res) {
 
 
 /**
+ * Get request from html page to server for updating user's top artists.
+ */
+app.get('/get-top-artists', function(req, res) {
+  //set cookie
+  state = generateRandomString(16);
+  res.cookie(stateKey, state);
+
+  //call API
+  apiInitCall(scope, redirect_top_artists, res);
+});
+
+
+/**
+* Page for seeing users top songs.
+* Contains all data sent to page.
+*/
+app.get('/top-artists', function(req, res) {
+  if(!loggedin){
+    //TODO: redirect to a login popup
+    res.redirect('/');
+  } else {
+    res.render('public/index', {
+      display_name: loggedInData.user_id,
+      login_image: loggedInData.login_image,
+      top_artists_names: topArtistsData.top_artists_names,
+      top_artists_images: topArtistsData.top_artists_images,
+      time_length: timeLimitDisplay(top_tracks_time)
+    });
+  }
+});
+
+
+/**
 * Request users top artists.
 * NOTE: this link needs to be whitelisted.
 */
@@ -191,6 +191,32 @@ app.get('/top-artists-redirect', function(req, res) {
   var redirect_auth = redirect_top_artists;
   apiReqData(url, redirect_auth, req, res);
 });
+
+
+/**
+*Get request from html page for getting user's playlist.
+*/
+app.get('/get-playlists', function(req, res) {
+  //set cookie
+  state = generateRandomString(16);
+  res.cookie(stateKey, state);
+
+  //call API
+  apiInitCall(scope, redirect_playlists, res);
+});
+
+
+/**
+* Request users top artists.
+* NOTE: this link needs to be whitelisted.
+*/
+app.get('/playlists-redirect', function(req, res) {
+  var url = 'https://api.spotify.com/v1/me/playlists?limit=50'
+  var redirect_auth = redirect_playlists;
+  // console.log(res.body.items);
+  apiReqData(url, redirect_auth, req, res);
+});
+
 
 
 /**
@@ -342,6 +368,8 @@ function apiReqData(url, redirect_auth, req, res){
               //parse songs
               topSongsData = parsingHelper.parseApiTracks(body);
               res.redirect('/top-songs');
+            // } else if (parsingHelper.isPlaylist(body.items[0])){
+
             } else if (parsingHelper.isArtist(body.items[0])){
               //parse artists
               topArtistsData = parsingHelper.parseApiArtists(body);

@@ -45,7 +45,7 @@ var isTrack = function(object){
 */
 var parseApiLogin = function(obj) {
   var loggedInData = {
-    display_name: obj.display_name,
+    user_id: obj.display_name,
     login_image: obj.images[0].url
   };
   return loggedInData;
