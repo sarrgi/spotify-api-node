@@ -4,38 +4,30 @@
 * @param  {object} - Object being compared to see if it is an artist.
 */
 var isArtist = function(object){
-  return object.hasOwnProperty("external_urls")
-  && object.hasOwnProperty("href")
-  && object.hasOwnProperty("id")
-  && object.hasOwnProperty("name")
-  && object.hasOwnProperty("type")
-  && object.hasOwnProperty("uri");
+  return object.hasOwnProperty("type")
+    && object.type === "artist";
+}
+
+
+/**
+* Checks if an object is a playlist based on the simplified playlist object.
+* Reference: https://developer.spotify.com/documentation/web-api/reference/object-model/#playlist-object-simplified.
+* @param  {object} - Object being compared to see if it is a playlist.
+*/
+var isPlaylist = function(object){
+  return object.hasOwnProperty("type")
+    && object.type === "playlist";
 }
 
 
 /**
 * Checks if an object is a track based on the simplified track object.
-* Could use full track  object but even the simple one ahs more than enough parameters to ensure object is a track.
 * Reference: https://developer.spotify.com/documentation/web-api/reference/object-model/#track-object-simplified.
 * @param  {object} - Object being compared to see if it is a track.
 */
 var isTrack = function(object){
-  return object.hasOwnProperty("album")
-  && object.hasOwnProperty("artists")
-  && object.hasOwnProperty("available_markets")
-  && object.hasOwnProperty("disc_number")
-  && object.hasOwnProperty("duration_ms")
-  && object.hasOwnProperty("explicit")
-  && object.hasOwnProperty("external_urls")
-  && object.hasOwnProperty("href")
-  && object.hasOwnProperty("id")
-  && object.hasOwnProperty("name")
-  && object.hasOwnProperty("preview_url")
-  && object.hasOwnProperty("track_number")
-  && object.hasOwnProperty("type")
-  && object.hasOwnProperty("uri")
-  && object.hasOwnProperty("is_local")
-  ;
+  return object.hasOwnProperty("type")
+    && object.type === "track";
 }
 
 
@@ -43,7 +35,7 @@ var isTrack = function(object){
 * Method which parses a login object so that it can be stored in the server.
 * @param {obj} - JSON object being parsed.
 */
-var parseApiLogin = function(obj) {
+var parseLogin = function(obj) {
   var loggedInData = {
     user_id: obj.display_name,
     login_image: obj.images[0].url
@@ -56,8 +48,9 @@ var parseApiLogin = function(obj) {
 * Method for parsing the tracks obtained via the top tracks get request.
 * @param {obj} - JSON object being parsed.
 */
-var parseApiTracks = function(obj){
+var parseTracks = function(obj){
   var topSongsData = {
+    //TODO: fix naming
     top_songs_artists: new Array(obj.items.length),
     top_songs_name: new Array(obj.items.length),
     top_songs_albums: new Array(obj.items.length),
@@ -90,8 +83,9 @@ var parseApiTracks = function(obj){
 * Method for parsing the artists obtained via the top artists get request.
 * @param {obj} - JSON object being parsed.
 */
-var parseApiArtists = function (obj){
+var parseArtists = function (obj){
   var topArtistsData = {
+    //TODO: fix naming
     top_artists_names: new Array(obj.items.length),
     top_artists_images: new Array(obj.items.length) //NOTE: images is USUALLY 3 long
   }
@@ -110,4 +104,41 @@ var parseApiArtists = function (obj){
 }
 
 
-module.exports = {isArtist, isTrack, parseApiLogin, parseApiTracks, parseApiArtists}
+/**
+* Method for parsing the artists obtained via the top artists get request.
+* @param {obj} - JSON object being parsed.
+*/
+var parsePlaylists = function (obj){
+  var playlistsData = {
+    id:  new Array(obj.items.length),
+    description:  new Array(obj.items.length),
+    images:  new Array(obj.items.length),
+    name:  new Array(obj.items.length),
+    owner:  new Array(obj.items.length),
+    isPublic:  new Array(obj.items.length),
+    tracks:  new Array(obj.items.length),
+    uri :  new Array(obj.items.length)
+  }
+
+  for (let i = 0; i < obj.items.length; i++){
+    //parse images url
+    var image_refs = new Array(obj.items[i].images.length);
+    for (let j = 0; j < obj.items[i].images.length; j++){
+      image_refs[j] = obj.items[i].images[j].url;
+    }
+    //parse remaining data directly
+    playlistsData.images[i] = image_refs;
+    playlistsData.id[i] = obj.items[i].id;
+    playlistsData.description[i] = obj.items[i].description;
+    playlistsData.images[i] = obj.items[i].images;
+    playlistsData.name[i] = obj.items[i].name;
+    playlistsData.owner[i] = obj.items[i].owner.display_name;
+    playlistsData.isPublic[i] = obj.items[i].public;
+    playlistsData.tracks[i] = obj.items[i].tracks;
+    playlistsData.uri[i] = obj.items[i].uri;
+  }
+
+  return playlistsData;
+}
+
+module.exports = {isArtist, isTrack, isPlaylist, parseLogin, parseTracks, parseArtists, parsePlaylists}

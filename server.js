@@ -42,6 +42,7 @@ var top_tracks_time = 'short_term';
 var loggedInData;
 var topSongsData;
 var topArtistsData;
+var playlistsData;
 
 
 /**
@@ -218,6 +219,25 @@ app.get('/playlists-redirect', function(req, res) {
 });
 
 
+/**
+* Page for seeing users playlists.
+* Contains all data sent to page.
+*/
+app.get('/playlists', function(req, res) {
+  if(!loggedin){
+    //TODO: redirect to a login popup
+    res.redirect('/');
+  } else {
+    res.render('public/index', {
+      // display_name: loggedInData.user_id,
+      // login_image: loggedInData.login_image,
+      // top_artists_names: topArtistsData.top_artists_names,
+      // top_artists_images: topArtistsData.top_artists_images,
+      // time_length: timeLimitDisplay(top_tracks_time)
+    });
+  }
+});
+
 
 /**
 * Update the current tracks being displayed in the top songs page.
@@ -359,20 +379,22 @@ function apiReqData(url, redirect_auth, req, res){
           // console.log(body);
           if(!loggedin){
             loggedin = true;
-            loggedInData = parsingHelper.parseApiLogin(body);
+            loggedInData = parsingHelper.parseLogin(body);
             res.redirect('/');
           }
           if(loggedin && body.hasOwnProperty('items')){
             //TODO length check?
+            // console.log(body.items[0]);
             if(parsingHelper.isTrack(body.items[0])){
               //parse songs
-              topSongsData = parsingHelper.parseApiTracks(body);
+              topSongsData = parsingHelper.parseTracks(body);
               res.redirect('/top-songs');
-            // } else if (parsingHelper.isPlaylist(body.items[0])){
-
+            } else if (parsingHelper.isPlaylist(body.items[0])){
+              topSongsData = parsingHelper.parsePlaylists(body);
+              res.redirect('/playlists');
             } else if (parsingHelper.isArtist(body.items[0])){
               //parse artists
-              topArtistsData = parsingHelper.parseApiArtists(body);
+              topArtistsData = parsingHelper.parseArtists(body);
               res.redirect('/top-artists');
             }
           }
