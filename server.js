@@ -46,7 +46,7 @@ var topArtistsData;
  * Connect to home page (index.ejs).
  */
 app.get('/', function(request, response) {
-  if (typeof loggedInData == "undefined"){
+  if (!loggedin){
     //render with no user data
     response.render('public/index', {});
   } else {
@@ -81,7 +81,10 @@ app.get('/login', function(req, res) {
 */
 app.get('/logout', function(req, res) {
   //set cookie
-
+  res.clearCookie(stateKey);
+  loggedin = false;
+  loggedInData = undefined;
+  res.redirect('/');
 });
 
 
@@ -101,15 +104,20 @@ app.get('/callback', function(req, res) {
 * Contains all data sent to page.
 */
 app.get('/top-songs', function(req, res) {
-  res.render('public/index', {
-    display_name: loggedInData.display_name,
-    login_image: loggedInData.login_image,
-    top_artists: topSongsData.top_songs_artists,
-    top_songs: topSongsData.top_songs_name,
-    top_albums: topSongsData.top_songs_albums,
-    top_albums_images: topSongsData.top_songs_albums_images,
-    time_length: timeLimitDisplay(top_tracks_time),
-  });
+  if(!loggedin){
+    //TODO: redirect to a login popup
+    res.redirect('/');
+  } else {
+    res.render('public/index', {
+      display_name: loggedInData.display_name,
+      login_image: loggedInData.login_image,
+      top_artists: topSongsData.top_songs_artists,
+      top_songs: topSongsData.top_songs_name,
+      top_albums: topSongsData.top_songs_albums,
+      top_albums_images: topSongsData.top_songs_albums_images,
+      time_length: timeLimitDisplay(top_tracks_time),
+    });
+  }
 });
 
 
@@ -118,13 +126,18 @@ app.get('/top-songs', function(req, res) {
 * Contains all data sent to page.
 */
 app.get('/top-artists', function(req, res) {
-  res.render('public/index', {
-    display_name: loggedInData.display_name,
-    login_image: loggedInData.login_image,
-    top_artists_names: topArtistsData.top_artists_names,
-    top_artists_images: topArtistsData.top_artists_images,
-    time_length: timeLimitDisplay(top_tracks_time)
-  });
+  if(!loggedin){
+    //TODO: redirect to a login popup
+    res.redirect('/');
+  } else {
+    res.render('public/index', {
+      display_name: loggedInData.display_name,
+      login_image: loggedInData.login_image,
+      top_artists_names: topArtistsData.top_artists_names,
+      top_artists_images: topArtistsData.top_artists_images,
+      time_length: timeLimitDisplay(top_tracks_time)
+    });
+  }
 });
 
 
