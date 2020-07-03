@@ -84,7 +84,7 @@
             <img width="150" src="<%= top_albums_images[i] %>" title="<%= top_songs[i] + ' - ' + top_artists[i] +  ' (' + top_albums[i] + ')' %>" />
           <% } %>
 
-            <!-- display top artists content-->
+        <!-- display top artists content-->
         <% } else if (typeof top_artists_names == 'object') { %>
           <!-- Title -->
           <h2>Your Top <%= top_artists_names.length %> Artists of <%= time_length %>.</h2>
@@ -110,6 +110,25 @@
           <% for (var i = 0; i < top_artists_names.length;  i++ ) { %>
             <% if (i % 5 == 0) { %> <br/> <% } %>
             <img id="content-img-crop" src="<%= top_artists_images[i][0] %>" title="<%= top_artists_names[i] %>" />
+          <% } %>
+        <!-- display playlists content-->
+        <% } else if (typeof playlists_ids == 'object') { %>
+          <% for (var i = 0; i < playlists_ids.length;  i++ ) { %>
+            <div id=playlist>
+              <div id = playlist-image>
+                <% if (playlists_images[i] === null) { %>
+                  <img width=80 src="images/default_profile.png" title="<%= playlists_names[i] %>" />
+                <% } else { %>
+                  <img width=80 src="<%= playlists_images[i] %>" title="<%= playlists_names[i] %>" />
+                <% } %>
+              </div>
+              <div id = playlist-description>
+                <%= playlists_names[i] %> by <%= playlists_owners[i] %>
+                <br>
+                <%= playlists_descriptions[i] %>
+                <br>
+              </div>
+            </div>
           <% } %>
         <% } %>
       </div>

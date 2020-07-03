@@ -122,15 +122,16 @@ var parsePlaylists = function (obj){
 
   for (let i = 0; i < obj.items.length; i++){
     //parse images url
-    var image_refs = new Array(obj.items[i].images.length);
-    for (let j = 0; j < obj.items[i].images.length; j++){
-      image_refs[j] = obj.items[i].images[j].url;
+    var image;
+    if (obj.items[i].images.length == 0){
+      //case for no image
+      image = null;
+    } else {
+      image = obj.items[i].images[0].url;
     }
-    //parse remaining data directly
-    playlistsData.images[i] = image_refs;
+    playlistsData.images[i] = image;
     playlistsData.id[i] = obj.items[i].id;
     playlistsData.description[i] = obj.items[i].description;
-    playlistsData.images[i] = obj.items[i].images;
     playlistsData.name[i] = obj.items[i].name;
     playlistsData.owner[i] = obj.items[i].owner.display_name;
     playlistsData.isPublic[i] = obj.items[i].public;

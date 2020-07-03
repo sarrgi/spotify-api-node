@@ -229,11 +229,16 @@ app.get('/playlists', function(req, res) {
     res.redirect('/');
   } else {
     res.render('public/index', {
-      // display_name: loggedInData.user_id,
-      // login_image: loggedInData.login_image,
-      // top_artists_names: topArtistsData.top_artists_names,
-      // top_artists_images: topArtistsData.top_artists_images,
-      // time_length: timeLimitDisplay(top_tracks_time)
+      display_name: loggedInData.user_id,
+      login_image: loggedInData.login_image,
+      playlists_ids:  playlistsData.id,
+      playlists_descriptions: playlistsData.description,
+      playlists_images:  playlistsData.images,
+      playlists_names:  playlistsData.name,
+      playlists_owners:  playlistsData.owner,
+      playlists_isPublic: playlistsData.isPublic,
+      playlists_tracks:  playlistsData.tracks,
+      playlists_uri :  playlistsData.uri
     });
   }
 });
@@ -390,7 +395,7 @@ function apiReqData(url, redirect_auth, req, res){
               topSongsData = parsingHelper.parseTracks(body);
               res.redirect('/top-songs');
             } else if (parsingHelper.isPlaylist(body.items[0])){
-              topSongsData = parsingHelper.parsePlaylists(body);
+              playlistsData = parsingHelper.parsePlaylists(body);
               res.redirect('/playlists');
             } else if (parsingHelper.isArtist(body.items[0])){
               //parse artists
