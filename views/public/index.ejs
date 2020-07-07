@@ -114,18 +114,23 @@
         <!-- display playlists content-->
         <% } else if (typeof playlists_ids == 'object') { %>
           <% for (var i = 0; i < playlists_ids.length;  i++ ) { %>
-            <div id=playlist>
-              <div id = playlist-image>
+            <div class=playlist>
+              <div class = playlist-image>
                 <% if (playlists_images[i] === null) { %>
                   <img width=80 src="images/default_profile.png" title="<%= playlists_names[i] %>" />
                 <% } else { %>
-                  <img width=80 src="<%= playlists_images[i] %>" title="<%= playlists_names[i] %>" />
+                  <img width=80 src="<%= playlists_images[i] %>" title="<%= playlists_names[i] %> &#013; <%= playlists_descriptions[i] %> " />
                 <% } %>
               </div>
-              <div id = playlist-description>
-                <%= playlists_names[i] %> by <%= playlists_owners[i] %>
+              <div class = playlist-description>
+                <b>Playlist:</b> <%= playlists_names[i] %>
                 <br>
-                <%= playlists_descriptions[i] %>
+                <b>Creator:</b> <%= playlists_owners[i] %>
+                <br>
+                <form action="/edit-playlist">
+                  <input type="hidden" name="id" value="<%= playlists_names[i] %>">
+                  <input type="submit" value="Edit Playlist">
+                </form>
                 <br>
               </div>
             </div>
